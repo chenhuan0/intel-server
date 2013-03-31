@@ -7,10 +7,15 @@ import time
 import shutil
 import os
 import contentdeliver
+import dbus
 
 class CUpdater(QtCore.QThread):
-    def __init__(self):
+    sendmsg = QtCore.pyqtSignal(str, str)
+    finished = QtCore.pyqtSignal(dbus.String, dbus.proxies.ProxyObject)
+    def __init__(self, parent, deviceObj):
         QtCore.QThread.__init__(self)
+        self.parent = parent
+        self.deviceObj = deviceObj
 
     def setNames(self, root, serial):
         self.serial = serial
@@ -20,19 +25,22 @@ class CUpdater(QtCore.QThread):
         self.previewsPath = root + USER_PREVIEWS_PATH;
 
     def run(self):
-        msg = QtGui.QApplication.translate('updater', "Updating index database of device(%1).").arg(self.serial)
-        self.emit(QtCore.SIGNAL("sendmsg"), msg, "blue")
+        msg = QtGui.QApplication.translate('updater', "Updating index database of device(%1)...").arg(self.serial)
+        self.sendmsg.emit(msg, "blue")
         self.updateIndex()
         time.sleep(3)
-        msg = QtGui.QApplication.translate('updater', "Updating resource files of device(%1).").arg(self.serial)
-        self.emit(QtCore.SIGNAL("sendmsg"), msg, "blue")
+        msg = QtGui.QApplication.translate('updater', "Updating resource files of device(%1)....").arg(self.serial)
+        self.sendmsg.emit(msg, "blue")
         self.updateContent()
         time.sleep(3)
-        msg = QtGui.QApplication.translate('updater', "Syncing device(%1) with system.").arg(self.serial)
-        self.emit(QtCore.SIGNAL("sendmsg"), msg, "blue")
+        msg = QtGui.QApplication.translate('updater', "Syncing device(%1) with system...").arg(self.serial)
+        self.sendmsg.emit(msg, "blue")
         os.system('sync')
-        msg = QtGui.QApplication.translate('updater', "Device(%1) is updated.").arg(self.serial)
-        self.emit(QtCore.SIGNAL("sendmsg"), msg, "blue")
+        msg = QtGui.QApplication.translate('updater', "Device(%1) is updated").arg(self.serial)
+        self.sendmsg.emit(msg, "blue")
+
+        self.finished.emit(self.serial, self.deviceObj)
+        
 
     def updateIndex(self):
         #Update index database
@@ -45,10 +53,11 @@ class CUpdater(QtCore.QThread):
 
         shutil.copytree(SERVER_PREVIEWS_PATH, self.previewsPath)
 
-    def updateContent(self):
-        deliver = contentdeliver.contentDeliver(self.root) 
+    def updateContent(self):      
         try:
+            deliver = contentdeliver.contentDeliver(self.root, self.serial) 
+            deliver.sendmsg[str, str].connect(self.parent.message, QtCore.Qt.QueuedConnection)
             deliver.run()
         except Exception, e:
             msg = QtGui.QApplication.translate('updater', "Error of device(%1): %2").arg(self.serial).arg(str(e))
-            self.emit(QtCore.SIGNAL("sendmsg"), msg, "blue")
+            self.sendmsg.emit(msg, "blue")

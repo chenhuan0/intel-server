@@ -13,6 +13,7 @@ import time
 
 class CMainWindow(QtGui.QWidget):
     updaters = []
+    sendmsg = QtCore.pyqtSignal(str, str)
     def __init__(self, parent = None):
         QtGui.QWidget.__init__(self, parent)
         self.ui = Ui_mainwindow()
@@ -24,25 +25,24 @@ class CMainWindow(QtGui.QWidget):
         self.iface = dbus.Interface(self.proxy, "org.freedesktop.UDisks")
         self.iface.connect_to_signal('DeviceChanged', self.deviceInserted)
         self.iface.connect_to_signal('DeviceRemoved', self.deviceRemoved)
-
         self.running = False
-
-        QtCore.QObject.connect(self.ui.startButton, QtCore.SIGNAL('clicked()'), self.start)
-        QtCore.QObject.connect(self, QtCore.SIGNAL("sendmsg"), self.message)
+        self.ui.startButton.clicked.connect(self.start, QtCore.Qt.QueuedConnection)
+        self.sendmsg[str, str].connect(self.message, QtCore.Qt.QueuedConnection)
+        
     def start(self):
         if self.running == False:
-            self.ui.statusLabel.setText(QtGui.QApplication.translate('mainWindow', 'System is running.'))
+            self.ui.statusLabel.setText(QtGui.QApplication.translate('mainWindow', 'System is running'))
             self.ui.startButton.setText(QtGui.QApplication.translate('mainWindow', 'Stop'))
             self.running = True
-            msg = QtGui.QApplication.translate('mainWindow', "System started.")
-            self.emit(QtCore.SIGNAL("sendmsg"), msg, "red")
+            msg = QtGui.QApplication.translate('mainWindow', "System started")
+            self.sendmsg.emit(msg, "red")
 
         else:
-            self.ui.statusLabel.setText(QtGui.QApplication.translate('mainWindow', 'System is stopped.'))
+            self.ui.statusLabel.setText(QtGui.QApplication.translate('mainWindow', 'System is stopped'))
             self.ui.startButton.setText(QtGui.QApplication.translate('mainWindow', 'Start'))
             self.running = False
-            msg = QtGui.QApplication.translate('mainWindow', "System stopped.")
-            self.emit(QtCore.SIGNAL("sendmsg"), msg, "red")
+            msg = QtGui.QApplication.translate('mainWindow', "System stopped")
+            self.sendmsg.emit(msg, "red")
 
     def deviceInserted(self, device):
         if self.running == False:
@@ -61,18 +61,26 @@ class CMainWindow(QtGui.QWidget):
         if not os.path.exists(root):
             return
 
-        msg = QtGui.QApplication.translate('mainWindow', "Device(%1) inserted.").arg(serial)
-        self.emit(QtCore.SIGNAL("sendmsg"), msg, "blue")
-        updater = CUpdater()
+        msg = QtGui.QApplication.translate('mainWindow', "Device(%1) inserted").arg(serial)
+        self.sendmsg.emit(msg, "red")
+        updater = CUpdater(self, deviceObj)
         self.updaters.append(updater)
-        QtCore.QObject.connect(updater, QtCore.SIGNAL("sendmsg"), self.message)
+        updater.sendmsg[str, str].connect(self.message, QtCore.Qt.QueuedConnection)
+        updater.finished[dbus.String, dbus.proxies.ProxyObject].connect(self.finished, QtCore.Qt.QueuedConnection)
         updater.setNames(root, serial)
         updater.start()
 
     def deviceRemoved(self, device):
         pass
 
-    def message(self, msg, msgType = None):
+    def finished(self, serial, deviceObj):
+        devIfce = dbus.Interface(deviceObj, 'org.freedesktop.UDisks.Device')
+        devIfce.FilesystemUnmount([])
+        msg = QtGui.QApplication.translate('mainWindow', "Device(%1) is unmounted").arg(serial)
+        self.sendmsg.emit(msg, "red")
+
+    @QtCore.pyqtSlot(str, str)
+    def message(self, msg, msgType):
         timeMsg = time.ctime()
         if msgType == "blue":
             msg = "<font color=blue>" + "[" + timeMsg + "]" + "  " + msg + "</font>"

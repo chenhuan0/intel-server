@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created: Sat Mar 30 23:39:10 2013
+# Created: Sun Mar 31 17:28:45 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -101,12 +101,6 @@ class Ui_mainwindow(object):
         self.startButton = QtGui.QPushButton(mainwindow)
         self.startButton.setObjectName(_fromUtf8("startButton"))
         self.horizontalLayout_5.addWidget(self.startButton)
-        self.configButton = QtGui.QPushButton(mainwindow)
-        self.configButton.setObjectName(_fromUtf8("configButton"))
-        self.horizontalLayout_5.addWidget(self.configButton)
-        self.hideButton = QtGui.QPushButton(mainwindow)
-        self.hideButton.setObjectName(_fromUtf8("hideButton"))
-        self.horizontalLayout_5.addWidget(self.hideButton)
         self.exitButton = QtGui.QPushButton(mainwindow)
         self.exitButton.setObjectName(_fromUtf8("exitButton"))
         self.horizontalLayout_5.addWidget(self.exitButton)
@@ -147,10 +141,8 @@ class Ui_mainwindow(object):
         mainwindow.setWindowTitle(_translate("mainwindow", "信息发布系统", None))
         self.label_11.setText(_translate("mainwindow", "适用于偏远地区的科教信息发布系统", None))
         self.label_12.setText(_translate("mainwindow", "<html><head/><body><p><span style=\" font-size:16pt;\">教育部-Intel信息技术科研基金资助项目</span></p></body></html>", None))
-        self.statusLabel.setText(_translate("mainwindow", "系统已经停止.", None))
+        self.statusLabel.setText(_translate("mainwindow", "系统已经停止", None))
         self.startButton.setText(_translate("mainwindow", "启动", None))
-        self.configButton.setText(_translate("mainwindow", "配置", None))
-        self.hideButton.setText(_translate("mainwindow", "与上游同步", None))
         self.exitButton.setText(_translate("mainwindow", "退出", None))
         self.label_8.setText(_translate("mainwindow", "消息：", None))
         self.clearButton.setText(_translate("mainwindow", "清除", None))

@@ -265,20 +265,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="configButton">
-           <property name="text">
-            <string>配置</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="hideButton">
-           <property name="text">
-            <string>与上游同步</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="exitButton">
            <property name="text">
             <string>退出</string>

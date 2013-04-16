@@ -43,15 +43,19 @@ class CUpdater(QtCore.QThread):
         
 
     def updateIndex(self):
-        #Update index database
-        if os.path.exists(self.dbPath):
-            shutil.rmtree(self.dbPath)
-        shutil.copytree(SERVER_DB_PATH, self.dbPath)
-        #Update preview images
-        if os.path.exists(self.previewsPath):
-            shutil.rmtree(self.previewsPath)
+        try:
+            #Update index database
+            if os.path.exists(self.dbPath):
+                shutil.rmtree(self.dbPath)
+            shutil.copytree(SERVER_DB_PATH, self.dbPath)
+            #Update preview images
+            if os.path.exists(self.previewsPath):
+                shutil.rmtree(self.previewsPath)
 
-        shutil.copytree(SERVER_PREVIEWS_PATH, self.previewsPath)
+            shutil.copytree(SERVER_PREVIEWS_PATH, self.previewsPath)
+        except Exception, e:
+            msg = QtGui.QApplication.translate('updater', "Error of device(%1): %2").arg(self.serial).arg(str(e))
+            self.sendmsg.emit(msg, "blue")
 
     def updateContent(self):      
         try:
